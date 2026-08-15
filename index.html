@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DirectoryCraft - フォルダをツリー構造テキストに瞬間変換</title>
+
+  <!-- Google Fonts & Style -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="header">
+      <h1>DirectoryCraft <span>v1.0</span></h1>
+      <p class="subtitle">フォルダをドロップするだけでツリー構造テキスト/Markdownを自動生成</p>
+    </header>
+
+    <main class="main-content">
+      <!-- ドロップエリア -->
+      <div id="drop-zone" class="drop-zone">
+        <div class="drop-zone-inner">
+          <div class="icon">📁</div>
+          <p class="primary-text">ここにフォルダをドラッグ＆ドロップ</p>
+          <p class="secondary-text">またはクリックしてフォルダを選択</p>
+        </div>
+        <input type="file" id="file-input" webkitdirectory directory multiple hidden>
+      </div>
+
+      <!-- コントロール・オプションエリア -->
+      <div class="controls-panel">
+        <div class="option-group">
+          <label for="format-select">出力形式:</label>
+          <select id="format-select">
+            <option value="tree">ツリー形式 (├─ └─)</option>
+            <option value="markdown">Markdown (リスト形式)</option>
+            <option value="path">パス一覧 (相対パス)</option>
+          </select>
+        </div>
+
+        <div class="option-group checkbox-group">
+          <label>
+            <input type="checkbox" id="ignore-git" checked> .git フォルダを除外
+          </label>
+          <label>
+            <input type="checkbox" id="ignore-modules" checked> node_modules を除外
+          </label>
+        </div>
+      </div>
+
+      <!-- 出力エリア -->
+      <div class="output-panel">
+        <div class="output-header">
+          <span class="output-title">出力結果</span>
+          <button id="copy-btn" class="btn-copy">📋 ログをコピー</button>
+        </div>
+        <pre><code id="output-text">ここにツリー構造が出力されます...</code></pre>
+      </div>
+    </main>
+
+    <!-- アフィリエイト・サーバー広告エリア -->
+    <aside class="recommend-section">
+      <div class="recommend-card">
+        <div class="recommend-tag">RECOMMEND</div>
+        <h3>🚀 作成したWebサイト・コードを高速公開するなら</h3>
+        <p>静的サイトからWordPress運用まで、高速・安定のおすすめレンタルサーバー</p>
+        <div class="recommend-links">
+          <a href="https://example.com/xserver" target="_blank" rel="noopener noreferrer" class="aff-link">
+            <strong>エックスサーバー</strong> — 国内シェアNo.1！高速で高機能な定番サーバー
+          </a>
+          <a href="https://example.com/conoha" target="_blank" rel="noopener noreferrer" class="aff-link">
+            <strong>ConoHa WING</strong> — 処理速度トップクラス＆初期費用無料で手軽
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <footer class="footer">
+      <p>DirectoryCraft &copy; 2026 - Powered by HTML / CSS / JS (Client-side execution)</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
