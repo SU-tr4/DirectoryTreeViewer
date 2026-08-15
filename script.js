@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('file-input');
   const outputText = document.getElementById('output-text');
   const copyBtn = document.getElementById('copy-btn');
+  const resetBtn = document.getElementById('reset-btn');
   const formatSelect = document.getElementById('format-select');
   const ignoreGit = document.getElementById('ignore-git');
   const ignoreModules = document.getElementById('ignore-modules');
@@ -83,6 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // リセット機能
+  resetBtn.addEventListener('click', () => {
+    rawPathsCache = [];
+    fileInput.value = '';
+    outputText.textContent = 'ここにツリー構造が出力されます...';
+  });
+
   // --- 再帰的にディレクトリ内を全取得する関数 (readEntriesの100件制限を突破) ---
 
   function traverseFileTree(item, path = '') {
@@ -95,12 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const dirReader = item.createReader();
         let entries = [];
 
-        // readEntriesは一度に最大100件しか返さないため、0件になるまでループ呼び出し
         const readAllEntries = () => {
           dirReader.readEntries(async (batch) => {
             if (batch.length === 0) {
               if (entries.length === 0) {
-                // 空フォルダの場合
                 resolve([currentPath + '/']);
               } else {
                 const childPromises = entries.map(entry => traverseFileTree(entry, currentPath));
@@ -171,12 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!current[part]) {
           if (isLast && !isExplicitDir) {
-            current[part] = null; // ファイル
+            current[part] = null;
           } else {
-            current[part] = {}; // ディレクトリ
+            current[part] = {};
           }
-        } else if (isLast && !isExplicitDir) {
-          // 既にディレクトリとして登録されていなければファイル設定
         }
 
         if (current[part] !== null) {
