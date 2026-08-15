@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dropZone.classList.remove('dragover');
   });
 
-  // ドラッグ＆ドロップ処理（エントリー解析）
+  // ドラッグ＆ドロップ処理
   dropZone.addEventListener('drop', async (e) => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
@@ -30,12 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const items = e.dataTransfer.items;
     if (items && items.length > 0) {
       outputText.textContent = '解析中...';
-      const paths = [];
-
       const promiseList = [];
+
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        // File System APIのエントリーを取得
         const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
         if (entry) {
           promiseList.push(traverseFileTree(entry, ''));
@@ -43,18 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const results = await Promise.all(promiseList);
-      // 配列の平坦化
       rawPathsCache = results.flat();
       renderOutput();
     }
   });
 
-  // ファイルダイアログ選択時の処理（webkitdirectory用）
+  // ファイルダイアログ選択時の処理
   fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
       const paths = [];
       for (const file of e.target.files) {
-        // webkitRelativePath からパスを取得
         paths.push(file.webkitRelativePath || file.name);
       }
       rawPathsCache = paths;
@@ -87,40 +83,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // --- エントリーを再帰的に走査してパスを配列で返す関数 ---
+  // --- 再帰的にディレクトリ内を全取得する関数 (readEntriesの100件制限を突破) ---
 
   function traverseFileTree(item, path = '') {
     return new Promise((resolve) => {
-      const paths = [];
-      const currentPath = path + item.name;
+      const currentPath = path ? `${path}/${item.name}` : item.name;
 
       if (item.isFile) {
-        paths.push(currentPath);
-        resolve(paths);
+        resolve([currentPath]);
       } else if (item.isDirectory) {
         const dirReader = item.createReader();
-        const readEntries = () => {
-          dirReader.readEntries(async (entries) => {
-            if (entries.length === 0) {
-              // 空フォルダの場合
-              paths.push(currentPath + '/');
-              resolve(paths);
-            } else {
-              const childPromises = [];
-              for (let i = 0; i < entries.length; i++) {
-                childPromises.push(traverseFileTree(entries[i], currentPath + '/'));
+        let entries = [];
+
+        // readEntriesは一度に最大100件しか返さないため、0件になるまでループ呼び出し
+        const readAllEntries = () => {
+          dirReader.readEntries(async (batch) => {
+            if (batch.length === 0) {
+              if (entries.length === 0) {
+                // 空フォルダの場合
+                resolve([currentPath + '/']);
+              } else {
+                const childPromises = entries.map(entry => traverseFileTree(entry, currentPath));
+                const childResults = await Promise.all(childPromises);
+                resolve(childResults.flat());
               }
-              const childResults = await Promise.all(childPromises);
-              resolve(childResults.flat());
+            } else {
+              entries = entries.concat(Array.from(batch));
+              readAllEntries();
             }
           });
         };
-        readEntries();
+
+        readAllEntries();
+      } else {
+        resolve([]);
       }
     });
   }
 
-  // --- レンダリング・出力処理 ---
+  // --- 出力制御 ---
 
   function renderOutput() {
     if (rawPathsCache.length === 0) return;
@@ -130,8 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isIgnoreModules = ignoreModules.checked;
 
     for (const path of rawPathsCache) {
-      if (isIgnoreGit && (path.includes('.git/') || path.endsWith('.git'))) continue;
-      if (isIgnoreModules && (path.includes('node_modules/') || path.endsWith('node_modules'))) continue;
+      if (isIgnoreGit && (path.includes('.git/') || path.includes('/.git') || path === '.git')) continue;
+      if (isIgnoreModules && (path.includes('node_modules/') || path.includes('/node_modules') || path === 'node_modules')) continue;
 
       paths.push(path);
     }
@@ -153,19 +154,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- ツリー構造オブジェクトの生成 ---
+  // --- パス一覧からツリーオブジェクトを作成 ---
 
   function buildTreeStructure(paths) {
     const root = {};
 
     paths.forEach(path => {
-      const parts = path.split('/').filter(p => p.length > 0);
+      const isExplicitDir = path.endsWith('/');
+      const cleanPath = isExplicitDir ? path.slice(0, -1) : path;
+      const parts = cleanPath.split('/');
+
       let current = root;
 
       parts.forEach((part, index) => {
+        const isLast = index === parts.length - 1;
+
         if (!current[part]) {
-          current[part] = (index === parts.length - 1 && !path.endsWith('/')) ? null : {};
+          if (isLast && !isExplicitDir) {
+            current[part] = null; // ファイル
+          } else {
+            current[part] = {}; // ディレクトリ
+          }
+        } else if (isLast && !isExplicitDir) {
+          // 既にディレクトリとして登録されていなければファイル設定
         }
+
         if (current[part] !== null) {
           current = current[part];
         }
