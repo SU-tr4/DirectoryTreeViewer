@@ -85,11 +85,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // リセット機能
-  resetBtn.addEventListener('click', () => {
-    rawPathsCache = [];
-    fileInput.value = '';
-    outputText.textContent = 'ここにツリー構造が出力されます...';
-  });
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      rawPathsCache = [];
+      fileInput.value = '';
+      outputText.textContent = 'ここにツリー構造が出力されます...';
+    });
+  }
 
   // --- 再帰的にディレクトリ内を全取得する関数 (readEntriesの100件制限を突破) ---
 
