@@ -264,3 +264,27 @@ code {
   font-size: 0.8rem;
   color: var(--text-sub);
 }
+
+/* ボタンのグループ表示用 */
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* リセットボタンのスタイル */
+.btn-reset {
+  background: var(--border-color);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover {
+  background: #475569;
+  color: #fff;
+}
